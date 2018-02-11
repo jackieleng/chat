@@ -16,7 +16,7 @@ const redisHost = 'localhost';
 const redisPort = 6379;
 
 if (cluster.isMaster) {
-  console.log(`Master ${process.pid} is running`);
+  console.log(`Master (pid ${process.pid}) is running`);
 
   // Fork workers.
   for (let i = 0; i < numWorkers; i++) {
@@ -54,15 +54,12 @@ if (cluster.isMaster) {
 
     socket.on('chat message', function(msg) {
       console.log('message: ' + msg);
-    });
-
-    socket.on('chat message', function(msg) {
       io.emit('chat message', msg);
     });
   });
 
   server.listen(port, function() {
-    console.log(`Worker ${cluster.worker.id} listening on *:${port}`)
+    console.log(`Worker ${cluster.worker.id} (pid ${process.pid}) listening on *:${port}`)
   });
 
 }
