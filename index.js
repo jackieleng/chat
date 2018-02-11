@@ -11,6 +11,9 @@ const readFile = util.promisify(fs.readFile);
 const port = process.env.PORT || 3000;
 const numCPUs = require('os').cpus().length;
 const numWorkers = process.env.NUM_WORKERS || numCPUs;
+const redis = require('socket.io-redis');
+const redisHost = 'localhost';
+const redisPort = 6379;
 
 if (cluster.isMaster) {
   console.log(`Master ${process.pid} is running`);
@@ -24,10 +27,13 @@ if (cluster.isMaster) {
     console.log(`worker ${worker.process.pid} died`);
   });
 } else {
+  // Worker code
   const app = new Koa();
   const server = require('http').createServer(app.callback());
   const io = require('socket.io')(server);
   const router = new Router();
+  // use redis pubsub adapter to share messages between processes
+  io.adapter(redis({ host: redisHost, port: redisPort }));
 
   router.get('/', async function(ctx) {
     // TODO: switch out for some better way to serve HTML
@@ -59,5 +65,4 @@ if (cluster.isMaster) {
     console.log(`Worker ${cluster.worker.id} listening on *:${port}`)
   });
 
-// TODO: use redis pubsub to share messages between processes
 }
